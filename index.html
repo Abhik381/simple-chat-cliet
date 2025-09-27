@@ -27,9 +27,8 @@
 
       async function fetchUser(params) {
         try {
-          let user = await fetch(`https://simple-chat-server-three.vercel.app/api/users/get-user-name/${params}`);
+          let user = await fetch(`https://simple-chat-server-1.onrender.com/api/users/get-user-name/${params}`);
           user = await user.json();
-          console.log(user);
             userList.innerHTML = userTemplate(user);
         } catch (error) {
           console.error("Error fetching users:", error);

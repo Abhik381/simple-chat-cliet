@@ -171,7 +171,7 @@ console.log(response);
       async function formSubmit(payload) {
         try {
           let response = await fetch(
-            `https://simple-chat-server-three.vercel.app/api/users/${
+            `https://simple-chat-server-1.onrender.com/api/users/${
               Object.keys(payload).length > 1 ? "register" : "login"
             }`,
             {

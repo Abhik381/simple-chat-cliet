@@ -147,7 +147,7 @@
       async function fetchUser() {
         try {
           let user = await fetch(
-            `https://simple-chat-server-three.vercel.app/api/users/get-user-id/${receiverId}`
+            `https://simple-chat-server-1.onrender.com/api/users/get-user-id/${receiverId}`
           );
           user = await user.json();
           document.getElementById("userName").textContent = user.name;
@@ -160,7 +160,7 @@
       async function fetchMessages() {
         try {
           let messages = await fetch(
-            `https://simple-chat-server-three.vercel.app/api/messages/all?s=${userId}&r=${receiverId}`
+            `https://simple-chat-server-1.onrender.com/api/messages/all?s=${userId}&r=${receiverId}`
           );
           messages = await messages.json();
           let messageList = document.getElementById("messageList");
@@ -179,7 +179,7 @@
             message: sms,
           };
           let messages = await fetch(
-            `https://simple-chat-server-three.vercel.app/api/messages/create`,
+            `https://simple-chat-server-1.onrender.com/api/messages/create`,
             {
               method: "POST",
               headers: {
