@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <header>Simple Chat</header>
+      <section id="searchUser">
+        <input type="text" id="searchUserInput" placeholder="Search Name" />
+        <button>Search</button>
+      </section>
+      <section id="searchedUsers">
+        <ul></ul>
+      </section>
+    </main>
+    <script>
+      if (!localStorage.getItem("isLoggedIn")) {
+        window.location.href = "login.html";
+      }
+      const searchUserInput = document.getElementById("searchUserInput");
+      const searchedUsers = document.getElementById("searchedUsers");
+      const userList = searchedUsers.querySelector("ul");
+
+      async function fetchUser(params) {
+        try {
+          let user = await fetch(`https://simple-chat-server-three.vercel.app/api/users/get-user-name/${params}`);
+          user = await user.json();
+          console.log(user);
+            userList.innerHTML = userTemplate(user);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
+      }
+
+      function userTemplate(user) {
+        return `
+          <li class="user">
+            <div class="userInfo" id="${user._id}">
+              <a href="chat.html?id=${user._id}">${user.name}</a>
+            </div>
+          </li>
+        `;
+      }
+
+      document.querySelector("button").addEventListener("click", () => {
+        let query = searchUserInput.value.trim();
+        if (query) {
+          fetchUser(query);
+        }
+      });
+    </script>
+  </body>
+</html>
