@@ -112,6 +112,9 @@
       <div class="toggle" id="toggle-link">Don't have an account? Register</div>
     </div>
     <script>
+      if (localStorage.getItem("isLoggedIn")) {
+        window.location.href = "index.html";
+      }
       const loginForm = document.getElementById("login-form");
       const registerForm = document.getElementById("register-form");
       const toggleLink = document.getElementById("toggle-link");
