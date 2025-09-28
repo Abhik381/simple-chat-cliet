@@ -106,6 +106,12 @@
         background: #0056b3;
       }
 
+      #typingStatus {
+        font-size: 0.9rem;
+        color: rgb(41, 248, 41);
+        margin-left: 8px;
+      }
+
       @media (max-width: 600px) {
         main {
           max-width: 100vw;
@@ -121,15 +127,16 @@
       }
     </style>
     <link
-    href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
-    rel="stylesheet"
-/>
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <main>
       <header>
-        <i class="ri-arrow-left-line" id="back" onclick="history.back()"></i>
+        <i class="ri-arrow-left-line" id="back" onclick="historyBack()"></i>
         <h3 id="userName"></h3>
+        <span id="typingStatus"></span>
       </header>
       <section id="messages">
         <ul id="messageList"></ul>
@@ -143,19 +150,41 @@
     <script>
       let userId = localStorage.getItem("userId");
       let receiverId = location.search.split("=")[1];
+      let fetchuser;
+      if (!localStorage.getItem("isLoggedIn")) {
+        window.location.href = "login.html";
+      }
+      async function isOnline(isOnline){
+        console.log(isOnline);
+        
+        let user = await fetch(`http://localhost:3000/api/users/online-status/${localStorage.getItem("userId")}`,{
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isOnline }),
+        });
+      }
+
+      isOnline(navigator.onLine);
 
       async function fetchUser() {
         try {
           let user = await fetch(
-            `https://simple-chat-server-1.onrender.com/api/users/get-user-id/${receiverId}`
+            `http://localhost:3000/api/users/get-user-id/${receiverId}`
           );
           user = await user.json();
-          document.getElementById("userName").textContent = user.name;
+          fetchuser = user;
+          document.getElementById("userName").textContent = user.name + (user.isOnline ? " (Online)" : " (Offline)");
+          document.querySelector("#typingStatus").textContent = user.isTyping
+            ? "Typing..."
+            : "";
           fetchMessages();
         } catch (error) {
           console.error("Error fetching users:", error);
         }
       }
+
 
       async function fetchMessages() {
         try {
@@ -165,12 +194,11 @@
           messages = await messages.json();
           let messageList = document.getElementById("messageList");
           messageList.innerHTML = messages.map(messageTemplate).join("");
-          
         } catch (error) {
           console.error("Error fetching messages:", error);
         }
       }
-     
+
       async function createMessages(sms) {
         try {
           let payload = {
@@ -202,9 +230,48 @@
         `;
       }
 
-setInterval(() => {
+      function typingCheck() {
+        let messageInput = document.getElementById("messageText");
+        let timeout = null;
+
+        messageInput.addEventListener("keyup", function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => {
+            isTyping(false);
+          }, 500);
+          isTyping(true);
+        });
+      }
+      typingCheck();
+
+      async function isTyping(isTyping) {
+        let user = await fetch(
+          `http://localhost:3000/api/users/typing-status/${localStorage.getItem(
+            "userId"
+          )}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ isTyping: isTyping }),
+          }
+        );
+        user = await user.json();
+      }
+
+function historyBack(){
+  isOnline(false);
+  history.back();
+}
+
+      setInterval(() => {
         fetchMessages();
       }, 1000);
+
+      setInterval(() => {
+        fetchUser();
+      }, 500);
 
 
       document
