@@ -55,6 +55,8 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        justify-content: flex-end;
+        height: 100%;
       }
       .message {
         max-width: 75%;
@@ -134,7 +136,7 @@
   <body>
     <main>
       <header>
-        <i class="ri-arrow-left-line" id="back" onclick="historyBack()"></i>
+        <i class="ri-arrow-left-line" id="back"></i>
         <h3 id="userName"></h3>
         <span id="typingStatus"></span>
       </header>
@@ -147,23 +149,31 @@
       </footer>
     </main>
 
-    <script>
-      let userId = localStorage.getItem("userId");
-      let receiverId = location.search.split("=")[1];
-      let fetchuser;
+    <script type="module">
       if (!localStorage.getItem("isLoggedIn")) {
         window.location.href = "login.html";
       }
-      async function isOnline(isOnline){
+
+      let userId = localStorage.getItem("userId");
+      let receiverId = location.search.split("=")[1];
+      let fetchuser;
+      import { BASE_URI } from "./config.js";
+
+      async function isOnline(isOnline) {
         console.log(isOnline);
-        
-        let user = await fetch(`http://localhost:3000/api/users/online-status/${localStorage.getItem("userId")}`,{
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ isOnline }),
-        });
+
+        let user = await fetch(
+          `${BASE_URI}/api/users/online-status/${localStorage.getItem(
+            "userId"
+          )}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ isOnline }),
+          }
+        );
       }
 
       isOnline(navigator.onLine);
@@ -171,11 +181,12 @@
       async function fetchUser() {
         try {
           let user = await fetch(
-            `http://localhost:3000/api/users/get-user-id/${receiverId}`
+            `${BASE_URI}/api/users/get-user-id/${receiverId}`
           );
           user = await user.json();
           fetchuser = user;
-          document.getElementById("userName").textContent = user.name + (user.isOnline ? " (Online)" : " (Offline)");
+          document.getElementById("userName").textContent =
+            user.name + (user.isOnline ? " (Online)" : " (Offline)");
           document.querySelector("#typingStatus").textContent = user.isTyping
             ? "Typing..."
             : "";
@@ -185,7 +196,6 @@
         }
       }
 
-
       async function fetchMessages() {
         try {
           let messages = await fetch(
@@ -194,6 +204,14 @@
           messages = await messages.json();
           let messageList = document.getElementById("messageList");
           messageList.innerHTML = messages.map(messageTemplate).join("");
+          // Only scroll to bottom if user is already near the bottom
+          setTimeout(() => {
+            const threshold = 100; // px from bottom
+            const isNearBottom = messageList.scrollHeight - messageList.scrollTop - messageList.clientHeight < threshold;
+            if (isNearBottom) {
+              messageList.scrollTop = messageList.scrollHeight;
+            }
+          }, 50);
         } catch (error) {
           console.error("Error fetching messages:", error);
         }
@@ -246,7 +264,7 @@
 
       async function isTyping(isTyping) {
         let user = await fetch(
-          `http://localhost:3000/api/users/typing-status/${localStorage.getItem(
+          `${BASE_URI}/api/users/typing-status/${localStorage.getItem(
             "userId"
           )}`,
           {
@@ -260,10 +278,12 @@
         user = await user.json();
       }
 
-function historyBack(){
-  isOnline(false);
-  history.back();
-}
+      function historyBack() {
+        isOnline(false);
+        history.back();
+      }
+
+      document.getElementById("back").addEventListener("click", historyBack);
 
       setInterval(() => {
         fetchMessages();
@@ -272,7 +292,6 @@ function historyBack(){
       setInterval(() => {
         fetchUser();
       }, 500);
-
 
       document
         .getElementById("sendMessage")
